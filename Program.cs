@@ -71,9 +71,7 @@ class Program
                     MenuBusquedasReportes();
                     break;
                 case "5":
-                    Console.WriteLine("Has seleccionado: Guardar / Cargar datos");
-                    Console.WriteLine("Presiona Enter para continuar...");
-                    Console.ReadLine();
+                    MenuGuardarCargar();
                     break;
                 case "6":
                     Console.WriteLine("¡Hasta luego!");
@@ -1165,6 +1163,161 @@ class Program
         Console.WriteLine($"Total libros: {totalLibros}");
         Console.WriteLine($"Disponibles: {disponibles}");
         Console.WriteLine($"Prestados: {prestados}");
+    }
+
+    static void MenuGuardarCargar()
+    {
+        while (true)
+        {
+            Console.WriteLine("Guardar / Cargar datos:");
+            Console.WriteLine("1. Guardar datos");
+            Console.WriteLine("2. Cargar datos");
+            Console.WriteLine("3. Reiniciar datos (vaciar todo)");
+            Console.WriteLine("0. Volver al menú principal");
+            Console.Write("Selecciona una opción: ");
+
+            string? opcion = Console.ReadLine();
+            if (opcion == null)
+                return;
+
+            switch (opcion)
+            {
+                case "1":
+                    GuardarDatos();
+                    break;
+                case "2":
+                    CargarDatos();
+                    break;
+                case "3":
+                    ReiniciarDatos();
+                    break;
+                case "0":
+                    return;
+                default:
+                    Console.WriteLine("Opción no válida.");
+                    break;
+            }
+
+            Console.WriteLine("Presiona Enter para continuar...");
+            Console.ReadLine();
+        }
+    }
+
+    static void GuardarDatos()
+    {
+        var librosLines = new string[contadorLibros];
+        for (int i = 0; i < contadorLibros; i++)
+        {
+            librosLines[i] =
+                $"{libros[i].id}|{libros[i].titulo}|{libros[i].autor}|{libros[i].categoria}|{libros[i].anio}|{libros[i].disponible}";
+        }
+
+        var usuariosLines = new string[contadorUsuarios];
+        for (int i = 0; i < contadorUsuarios; i++)
+        {
+            usuariosLines[i] =
+                $"{usuarios[i].id}|{usuarios[i].nombre}|{usuarios[i].contacto}|{usuarios[i].activo}";
+        }
+
+        var prestamosLines = new string[contadorPrestamos];
+        for (int i = 0; i < contadorPrestamos; i++)
+        {
+            prestamosLines[i] =
+                $"{prestamos[i].idPrestamo}|{prestamos[i].idUsuario}|{prestamos[i].idLibro}|{prestamos[i].fechaPrestamo}|{prestamos[i].fechaLimite}|{prestamos[i].fechaDevolucion}|{prestamos[i].estado}";
+        }
+
+        System.IO.File.WriteAllLines("libros.txt", librosLines);
+        System.IO.File.WriteAllLines("usuarios.txt", usuariosLines);
+        System.IO.File.WriteAllLines("prestamos.txt", prestamosLines);
+
+        Console.WriteLine("Datos guardados en libros.txt, usuarios.txt y prestamos.txt.");
+    }
+
+    static void CargarDatos()
+    {
+        ReiniciarDatos();
+
+        if (System.IO.File.Exists("libros.txt"))
+        {
+            var lines = System.IO.File.ReadAllLines("libros.txt");
+            for (int i = 0; i < lines.Length && i < libros.Length; i++)
+            {
+                var parts = lines[i].Split('|');
+                if (parts.Length >= 6)
+                {
+                    libros[i].id = parts[0];
+                    libros[i].titulo = parts[1];
+                    libros[i].autor = parts[2];
+                    libros[i].categoria = parts[3];
+                    libros[i].anio = int.TryParse(parts[4], out int a) ? a : 0;
+                    libros[i].disponible = bool.TryParse(parts[5], out bool d) ? d : true;
+                    contadorLibros++;
+                }
+            }
+        }
+
+        if (System.IO.File.Exists("usuarios.txt"))
+        {
+            var lines = System.IO.File.ReadAllLines("usuarios.txt");
+            for (int i = 0; i < lines.Length && i < usuarios.Length; i++)
+            {
+                var parts = lines[i].Split('|');
+                if (parts.Length >= 4)
+                {
+                    usuarios[i].id = parts[0];
+                    usuarios[i].nombre = parts[1];
+                    usuarios[i].contacto = parts[2];
+                    usuarios[i].activo = bool.TryParse(parts[3], out bool a) ? a : true;
+                    contadorUsuarios++;
+                }
+            }
+        }
+
+        if (System.IO.File.Exists("prestamos.txt"))
+        {
+            var lines = System.IO.File.ReadAllLines("prestamos.txt");
+            for (int i = 0; i < lines.Length && i < prestamos.Length; i++)
+            {
+                var parts = lines[i].Split('|');
+                if (parts.Length >= 7)
+                {
+                    prestamos[i].idPrestamo = parts[0];
+                    prestamos[i].idUsuario = parts[1];
+                    prestamos[i].idLibro = parts[2];
+                    prestamos[i].fechaPrestamo = parts[3];
+                    prestamos[i].fechaLimite = parts[4];
+                    prestamos[i].fechaDevolucion = parts[5];
+                    prestamos[i].estado = parts[6];
+                    contadorPrestamos++;
+                }
+            }
+        }
+
+        Console.WriteLine("Datos cargados (si los archivos existían).");
+    }
+
+    static void ReiniciarDatos()
+    {
+        Console.Write("¿Estás seguro? Esto borrará todos los datos. (s/n): ");
+        string confirmar = Console.ReadLine() ?? "";
+        if (confirmar.ToLower() != "s")
+        {
+            Console.WriteLine("Operación cancelada.");
+            return;
+        }
+
+        contadorLibros = 0;
+        contadorUsuarios = 0;
+        contadorPrestamos = 0;
+
+        if (System.IO.File.Exists("libros.txt"))
+            System.IO.File.Delete("libros.txt");
+        if (System.IO.File.Exists("usuarios.txt"))
+            System.IO.File.Delete("usuarios.txt");
+        if (System.IO.File.Exists("prestamos.txt"))
+            System.IO.File.Delete("prestamos.txt");
+
+        Console.WriteLine("Datos reiniciados.");
     }
 
     static int BuscarUsuarioIndex(string id)
