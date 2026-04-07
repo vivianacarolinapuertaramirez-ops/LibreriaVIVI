@@ -117,11 +117,11 @@ namespace ViviLibreria
                 Usuario u = new Usuario();
                 Console.Write("ID: "); u.Id = Console.ReadLine() ?? "";
                 Console.Write("Nombre: "); u.Nombre = Console.ReadLine() ?? "";
-                usuarios.Add(u);
+                _usuarioService.Registrar(u);
             }
             else if (op == "2")
             {
-                usuarios.ForEach(u => Console.WriteLine($"{u.Id} - {u.Nombre}"));
+                _usuarioService.ObtenerTodos().ForEach(u => Console.WriteLine($"{u.Id} - {u.Nombre}"));
             }
             Console.ReadLine();
         }
