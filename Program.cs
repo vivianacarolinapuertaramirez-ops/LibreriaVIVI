@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using ViviLibreria.services;
 
 namespace ViviLibreria
 {
@@ -36,11 +37,11 @@ namespace ViviLibreria
 
     class Program
     {
-        // Listas dinámicas: no necesitan tamaño fijo ni contadores manuales
-        static List<Libro> libros = new List<Libro>();
-        static List<Usuario> usuarios = new List<Usuario>();
-        static List<Prestamo> prestamos = new List<Prestamo>();
-
+        //Instanciamos los servicios
+        static LibroService _libroService = new LibroService();
+        static UsuarioService _usuarioService = new UsuarioService();
+        static PrestamoService _prestamoService = new PrestamoService();
+        
         static void Main(string[] args)
         {
             while (true)
@@ -77,15 +78,17 @@ namespace ViviLibreria
                 Console.Write("ID/ISBN: "); nuevo.Id = Console.ReadLine() ?? "";
                 Console.Write("Título: "); nuevo.Titulo = Console.ReadLine() ?? "";
                 Console.Write("Autor: "); nuevo.Autor = Console.ReadLine() ?? "";
-                Console.Write("Año: "); nuevo.Anio = int.Parse(Console.ReadLine() ?? "0");
                 
-                libros.Add(nuevo); // La lista crece sola
-                Console.WriteLine("Libro registrado.");
+                // 2. Ya no usamos libros.Add(), usamos el servicio
+                _libroService.Registrar(nuevo); 
+                Console.WriteLine("Libro registrado mediante el Servicio.");
             }
             else if (op == "2")
             {
                 Console.WriteLine("\n--- LISTADO ---");
-                foreach (var l in libros)
+                // 3. Le pedimos los datos al servicio
+                var lista = _libroService.ObtenerTodos();
+                foreach (var l in lista)
                 {
                     Console.WriteLine($"ID: {l.Id} | {l.Titulo} | Disponible: {l.Disponible}");
                 }
@@ -94,14 +97,10 @@ namespace ViviLibreria
             {
                 Console.Write("ID a eliminar: ");
                 string id = Console.ReadLine() ?? "";
-                // LINQ: busca el libro y lo remueve si existe y está disponible
-                var libro = libros.FirstOrDefault(l => l.Id == id);
-                if (libro != null && libro.Disponible) {
-                    libros.Remove(libro);
-                    Console.WriteLine("Eliminado.");
-                } else {
-                    Console.WriteLine("No encontrado o está prestado.");
-                }
+                
+                // 4. La lógica de "si existe o si está prestado" ahora la hace el servicio
+                if (_libroService.Eliminar(id)) Console.WriteLine("Eliminado con éxito.");
+                else Console.WriteLine("No se pudo eliminar.");
             }
             Console.ReadLine();
         }
